@@ -1,8 +1,8 @@
-from twitterscraper import query_tweets
 import datetime
 import re
 import time
-
+from twitterscraper import query_tweets
+from basic_language_model import *
 
 '''
 -Script that uses twitterscraper to scrape twitter for a targeted selection of tweets
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	print(len(list_of_tweets))
 
 	for tweet in list_of_tweets:
-		'''iterate through the tweets we found, and remove any regex pattern matches'''
+		'''iterate through the tweets we found, encode to utf-8 (python string standard), and remove any regex pattern matches'''
 		clean = tweet.text.encode('utf-8')
 		clean = URL_PATTERN.sub('', clean)
 		clean = HASHTAG_PATTERN.sub('', clean)
@@ -44,20 +44,28 @@ if __name__ == '__main__':
 		clean = re.sub(' +',' ', clean)
 		clean = clean.replace('\n', '')
 
-		'''add the new cleaned tweet to the list of clean_tweets, and encode to utf-8'''
+		'''add the new cleaned tweet to the list of clean_tweets'''
 		clean_tweets.append(clean.lower())
 
 
 	'''print the resulting tweets'''
 	print(clean_tweets)
 
-	'''rint the length of execution time'''
+	'''clean_tweets now acting as the corpus of our data'''
+	print(assign_probability('go', clean_tweets)) #what is the probability that any word in the corpus was 'go'?
+
+	print(get_unique_tokens_count(clean_tweets)) #get a count of every unique word in the corpus
+
+
+	'''print the length of execution time'''
 	print("--- %s seconds" % (time.time() - start_time))
+
 
 '''
 NEXT STEPS:
--How do we assign probabilities to words?
+-How do we assign probabilities to words? -> somewhat done
 -How do we make predictions?
 ACTUALLY need to build the language model now
+-Structure/organize/clean this code
 '''
 	
