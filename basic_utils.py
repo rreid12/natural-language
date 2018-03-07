@@ -1,6 +1,7 @@
 import os
 from decimal import *
 import operator
+from nltk import ngrams
 
 
 '''
@@ -75,6 +76,11 @@ def assign_probability(word, corpus):
 
 	return Decimal(count) / Decimal(total_words) #Decimal is a class that provides super precise numbers for calculations
 
+'''
+Gets ngrams based on a sentence and a custom value of n
+'''
+def get_ngrams(n, sent):
+	return ngrams(sent.split(), n)
 
 #testing
 if __name__ == '__main__':
