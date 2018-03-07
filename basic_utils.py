@@ -1,8 +1,17 @@
 import os
 from decimal import *
 import operator
-from nltk import ngrams
 
+
+'''
+FUTURE:
+	-start thinking about <s> and </s> characters for each tweet to indicate start and stop
+	-how can we improve upon the bigram model? -> trigram, n-gram, machine learning?
+		-spell check?
+		-grammar check?
+		-???
+	-larger corpus and more dynamic analysis tools
+'''
 
 '''
 Get the number of tokens in the corpus
@@ -75,12 +84,6 @@ def assign_probability(word, corpus):
 	getcontext().prec = 10 #sets precision to 10 decimal places
 
 	return Decimal(count) / Decimal(total_words) #Decimal is a class that provides super precise numbers for calculations
-
-'''
-Gets ngrams based on a sentence and a custom value of n
-'''
-def get_ngrams(n, sent):
-	return ngrams(sent.split(), n)
 
 #testing
 if __name__ == '__main__':

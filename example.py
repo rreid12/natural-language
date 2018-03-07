@@ -44,10 +44,10 @@ bigram = sorted(bigram.items(), key=operator.itemgetter(1), reverse=True)
 
 
 #start with a word and generate a sentence based on bigrams
-start_word = 'on'
+start_word = 'i'
 
 print("start_word: %s " % start_word)
 
 print "2-gram sentence: \"", 
-get_bigram_sentence(start_word, 8)
+get_bigram_sentence(start_word, 3)
 print "\""
