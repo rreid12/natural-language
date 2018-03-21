@@ -36,7 +36,7 @@ class DataCollector(object):
 	def collect_data(self):
 		start_time = time.time()
 		print("INFO: starting to gather tweets...")
-		list_of_tweets = query_tweets(query="", limit=10000, begindate=datetime.date(2018, 2, 1), lang='en') #get list of tweets from twitterscraper API
+		list_of_tweets = query_tweets(query="", limit=10000, begindate=datetime.date(2017, 2, 1), lang='en') #get list of tweets from twitterscraper API
 		print("-----TOTAL AMOUNT OF TWEETS: {length}-----".format(length=len(list_of_tweets)))
 		print("INFO: execution time for gathering of tweets: {time} seconds".format(time=time.time() - start_time))
 		for tweet in list_of_tweets:
@@ -50,6 +50,7 @@ class DataCollector(object):
 		self.remove_hashtags()
 		self.remove_handles()
 		self.remove_punctuation()
+		self.remove_extra_whitespace()
 
 	def remove_urls(self):
 		URL_PATTERN = re.compile(r'(?i)((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))', re.IGNORECASE)
@@ -77,6 +78,9 @@ class DataCollector(object):
 			sentence = re.sub(' +', ' ', sentence)
 			self.corpus[i] = sentence.replace('\n', '')
 
-
+	def remove_extra_whitespace(self):
+		for i, sentence in enumerate(self.corpus):
+			sentence = sentence.lstrip()
+			self.corpus[i] = ' '.join(sentence.split())
 
 	
