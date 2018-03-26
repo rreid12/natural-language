@@ -1,12 +1,12 @@
 from data_collector import DataCollector
 from bigram_model import BigramModel
-from trigram_model import TrigramModel
+#from trigram_model import TrigramModel
 
-import re
+#import re
 
-'''
-URL_PATTERN = re.compile(r'(?i)((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))', re.IGNORECASE)
-HASHTAG_PATTERN = re.compile(r'#(.*?)[\s]', re.IGNORECASE)
+
+#URL_PATTERN = re.compile(r'(?i)((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))', re.IGNORECASE)
+'''HASHTAG_PATTERN = re.compile(r'#(.*?)[\s]', re.IGNORECASE)
 HANDLE_PATTERN = re.compile(r'(?<=^|(?<=[^a-zA-Z0-9-_\.]))@([A-Za-z]+[A-Za-z0-9]+)', re.IGNORECASE)
 PUNCTUATION_PATTERN = re.compile(r'[^a-zA-Z\s]', re.IGNORECASE)
 
@@ -39,25 +39,37 @@ text = text.lstrip()
 text = ' '.join(text.split())
 print(text)'''
 
+
 #collect data/clean it
+print('INFO: starting data collection...')
 collector = DataCollector()
 collector.collect_data()
+print('INFO: data collection complete...')
+print('INFO: starting data cleaning...')
 collector.clean_corpus()
-print(collector.corpus)
+print('INFO: data cleaning complete...')
+
+#print(collector.corpus)
 
 bigram_model = BigramModel(collector)
 
 
+word_lengths = []
+f = open('word_length.txt', r)
+
+for line in f:
+	word_lengths.append(line)
 
 
+print(word_lengths)
 
-#start with a word and generate a sentence based on bigrams
+'''#start with a word and generate a sentence based on bigrams
 start_word = 'i'
 
 print("start_word: %s " % start_word)
 
 print "2-gram sentence: \"", 
 bigram_model.get_bigram_sentence(start_word, 3)
-print "\""
+print "\""'''
 
-trigram_model = TrigramModel(collector)
+'''trigram_model = TrigramModel(collector)'''

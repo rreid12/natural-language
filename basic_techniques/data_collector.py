@@ -36,7 +36,7 @@ class DataCollector(object):
 	def collect_data(self):
 		start_time = time.time()
 		print("INFO: starting to gather tweets...")
-		list_of_tweets = query_tweets(query="", limit=10000, begindate=datetime.date(2017, 2, 1), lang='en') #get list of tweets from twitterscraper API
+		list_of_tweets = query_tweets(query='', limit=10000, lang='en') #get list of tweets from twitterscraper API
 		print("-----TOTAL AMOUNT OF TWEETS: {length}-----".format(length=len(list_of_tweets)))
 		print("INFO: execution time for gathering of tweets: {time} seconds".format(time=time.time() - start_time))
 		for tweet in list_of_tweets:
