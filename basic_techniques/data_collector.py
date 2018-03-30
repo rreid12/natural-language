@@ -3,6 +3,7 @@ import re
 import time
 from twitterscraper import query_tweets
 import json
+import os
 
 '''
 -Object that uses twitterscraper to scrape twitter for a targeted selection of tweets
@@ -39,12 +40,12 @@ class DataCollector(object):
 	def collect_data(self):
 		start_time = time.time()
 		print("INFO: starting to gather tweets...")
-		list_of_tweets = query_tweets(query='', limit=40000, begindate=datetime.date(2017,2,1), lang='en') #get list of tweets from twitterscraper API
+		list_of_tweets = query_tweets(query='', limit=2000, begindate=datetime.date(2017,2,1), lang='en') #get list of tweets from twitterscraper API
 		print("INFO: -----TOTAL AMOUNT OF TWEETS: {length}-----".format(length=len(list_of_tweets)))
 		print("INFO: execution time for gathering of tweets: {time} seconds".format(time=time.time() - start_time))
 		print('')
 
-		ount = 0
+		count = 0
 
 		print('INFO: *****ADDING NEW TWEETS*****')
 		for tweet in list_of_tweets:
@@ -58,27 +59,36 @@ class DataCollector(object):
 			json.dump(self.idtotweet, fw)
 
 		for key in self.idtotweet:
-			self.corpus.append(idtotweet[key])
+			self.corpus.append(self.idtotweet[key])
 
-		print('INFO: new length of permanent corpus: {twts}'.format(twts=len(idtotweet)))
+		print('INFO: new length of permanent corpus: {twts}'.format(twts=len(self.idtotweet)))
 
 	def load_corpus(self):
-		tweet_file = open('read_from.json')
-		tweet_str = tweet_file.read()
-		tweet_file.close()
 
-		print('INFO: starting to load json file...')
-		loaded_tweets = json.loads(tweet_str)
-		print('INFO: json file successfully loaded!\n')
+		filename = 'read_from.json'
 
-		for key in loaded_tweets:
-			tw_data = loaded_tweets[key].encode('utf-8')
-			tw_id = key.encode('utf-8')
+		try:
+			tweet_file = open(filename)
+			tweet_str = tweet_file.read()
+			tweet_file.close()
 
-			self.idtotweet[tw_id] = tw_data
+			print('INFO: starting to load json file...')
+			loaded_tweets = json.loads(tweet_str)
+			print('INFO: json file successfully loaded!\n')
 
-		for key in self.idtotweet:
-			self.corpus.append(self.idtotweet[key])
+			for key in loaded_tweets:
+				tw_data = loaded_tweets[key].encode('utf-8')
+				tw_id = key.encode('utf-8')
+
+				self.idtotweet[tw_id] = tw_data
+
+			for key in self.idtotweet:
+				self.corpus.append(self.idtotweet[key])
+		except IOError:
+			print('WARNING: JSON file could not be found!!!')
+			print('INFO: initiating the collection of a new data and the construction of a new corpus...')
+			self.collect_data()
+
 
 	def clean_corpus(self):
 		for i, sentence in enumerate(self.corpus):
