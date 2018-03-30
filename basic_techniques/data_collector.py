@@ -2,6 +2,7 @@ import datetime
 import re
 import time
 from twitterscraper import query_tweets
+import json
 
 '''
 -Object that uses twitterscraper to scrape twitter for a targeted selection of tweets
@@ -28,6 +29,8 @@ class DataCollector(object):
 
 	def __init__(self):
 		self.corpus = []
+		self.idtotweet = {}
+		self.load_corpus()
 
 	'''
 	In the future, this method should allow more complex queries if necessary and provide a
@@ -36,15 +39,50 @@ class DataCollector(object):
 	def collect_data(self):
 		start_time = time.time()
 		print("INFO: starting to gather tweets...")
-		list_of_tweets = query_tweets(query='', limit=10000, lang='en') #get list of tweets from twitterscraper API
-		print("-----TOTAL AMOUNT OF TWEETS: {length}-----".format(length=len(list_of_tweets)))
+		list_of_tweets = query_tweets(query='', limit=40000, begindate=datetime.date(2017,2,1), lang='en') #get list of tweets from twitterscraper API
+		print("INFO: -----TOTAL AMOUNT OF TWEETS: {length}-----".format(length=len(list_of_tweets)))
 		print("INFO: execution time for gathering of tweets: {time} seconds".format(time=time.time() - start_time))
+		print('')
+
+		ount = 0
+
+		print('INFO: *****ADDING NEW TWEETS*****')
 		for tweet in list_of_tweets:
-			self.corpus.append(tweet.text)
+			if tweet.id not in self.idtotweet:
+				self.idtotweet[tweet.id] = tweet.text
+				count += 1
+
+		print('INFO: {cnt} new tweets added to the corpus!'.format(cnt=count))
+
+		with open('read_from.json', 'w') as fw:
+			json.dump(self.idtotweet, fw)
+
+		for key in self.idtotweet:
+			self.corpus.append(idtotweet[key])
+
+		print('INFO: new length of permanent corpus: {twts}'.format(twts=len(idtotweet)))
+
+	def load_corpus(self):
+		tweet_file = open('read_from.json')
+		tweet_str = tweet_file.read()
+		tweet_file.close()
+
+		print('INFO: starting to load json file...')
+		loaded_tweets = json.loads(tweet_str)
+		print('INFO: json file successfully loaded!\n')
+
+		for key in loaded_tweets:
+			tw_data = loaded_tweets[key].encode('utf-8')
+			tw_id = key.encode('utf-8')
+
+			self.idtotweet[tw_id] = tw_data
+
+		for key in self.idtotweet:
+			self.corpus.append(self.idtotweet[key])
 
 	def clean_corpus(self):
 		for i, sentence in enumerate(self.corpus):
-			sentence = sentence.encode('utf-8')
+			#sentence = sentence.encode('utf-8')
 			self.corpus[i] = sentence.lower()
 		self.remove_urls()
 		self.remove_hashtags()

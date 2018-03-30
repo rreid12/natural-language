@@ -5,8 +5,11 @@ import operator
 
 class TrigramModel(object):
 
-	def __init__(self, data_collector=DataCollector()):
-		self.data_collector = data_collector
+	def __init__(self, data_collector=None):
+		if data_collector is None:
+			data_collector = DataCollector()
+		else:
+			self.data_collector = data_collector
 		self.trigrams = dict()
 		self.get_unique_trigrams()
 
@@ -51,13 +54,11 @@ class TrigramModel(object):
 				print('WARNING: no more trigrams available...exiting.')
 				break
 
-		#print (sentence)
 		return " ".join(sentence)
 
 
 #collect data/clean it
 collector = DataCollector()
-collector.collect_data()
 collector.clean_corpus()
 #print(collector.corpus)
 

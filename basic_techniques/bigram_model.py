@@ -1,3 +1,4 @@
+import os
 from data_collector import DataCollector
 from basic_utils import get_tokens, get_unique_tokens_count
 import operator
@@ -5,8 +6,11 @@ import operator
 
 class BigramModel(object):
 
-	def __init__(self, data_collector=DataCollector()):
-		self.data_collector = data_collector
+	def __init__(self, data_collector=None):
+		if data_collector is None:
+			data_collector = DataCollector()
+		else:
+			self.data_collector = data_collector
 		self.bigrams = dict()
 		self.get_unique_bigrams()
 
@@ -38,49 +42,82 @@ class BigramModel(object):
 	'''
 	def get_bigram_sentence(self, word, lengths, n=20):
 		word_idx = 0
-		for i in xrange(n):
-			print word,
+		sentence = []
+		for i in range(n):
+			if i < n -1:
+				word_idx += 1
+			sentence.append(word)
 			word = next((element[0][1] for element in self.bigrams if element[0][0] == word and len(element[0][1]) == int(lengths[word_idx])), None)
-			word_idx += 1
-			if not word:
-				print('\nWARNING: no matching bigrams found...exiting.')
-				break
+			if not word and i < n - 1:
+				print('DEBUG: n value: {n}'.format(n=n))
+				print('DEBUG: i value: {i}'.format(i=i))
+				print('DEBUG: current word: {word}'.format(word=word))
+				print('WARNING: terminated early because no more matching bigrams were found for this seed...')
+				return " ".join(sentence)
 
-	def get_seed_word(self, length):
+		return " ".join(sentence)
+
+	def get_best_seed_word(self, length):
 		tokens = get_unique_tokens_count(self.data_collector.corpus)
-		print('DEBUG: {len}'.format(len=length))
 
 		for tkn in tokens:
-			#print('DEBUG: tkn: {tok}'.format(tok=tkn))
-			#print('DEBUG: tkn[0]: {t0}'.format(t0=tkn[0]))
-			#print('DEBUG: tkn[0] length: {length}'.format(length=len(tkn[0])))
 			if(len(tkn[0]) == int(length)):
-				print('DEBUG: token found!!!')
 				return tkn[0]
+
+	#maybe?			
+	'''
+	def get_possible_seed_words(self, length):
+		all_tokens = get_unique_tokens_count(self.data_collector.corpus)
+
+		possible_seeds = []
+
+		for tkn in all_tokens:
+			if (len(tkn[0]) == int(length)):
+				possible_seeds.append(tkn[0])
+
+		return possible_seeds'''
+
 
 #collect data/clean it
 collector = DataCollector()
-collector.collect_data()
 collector.clean_corpus()
 #print(collector.corpus)
 
 bigram_model = BigramModel(collector)
 
 
-word_lengths = []
-f = open('word_length.txt', 'r')
 
-for line in f:
-	word_lengths.append(line.replace('\n', ''))
+dir_name = 'txt_examples'
+
+for filename in os.listdir(dir_name):
+	print('INFO: generating text for {fname}'.format(fname=filename))
+	word_lengths = []
+	f = open('{directory}/{file}'.format(directory=dir_name, file=filename), 'r')
+
+	for line in f:
+		word_lengths.append(line.replace('\n', ''))
+
+	#start with a word and generate a sentence based on bigrams
+	start_word = bigram_model.get_best_seed_word(word_lengths[0])
+
+	print("INFO: start_word: %s " % start_word)
+	print("INFO: 2-gram sentence: \" {sent} \"".format(sent=bigram_model.get_bigram_sentence(start_word, word_lengths, len(word_lengths))))
+	print('')
 
 
-print(word_lengths)
 
-#start with a word and generate a sentence based on bigrams
-start_word = bigram_model.get_seed_word(word_lengths[0])
+#maybe?
+'''
+pos_seeds = bigram_model.get_possible_seed_words(word_lengths[0])
+print('INFO: ----Possible seeds found: {seeds}-----'.format(seeds=len(pos_seeds)))
 
-print("start_word: %s " % start_word)
+sentences = []
 
-print "2-gram sentence: \"", 
-bigram_model.get_bigram_sentence(start_word, word_lengths, len(word_lengths))
-print "\""
+for seed in pos_seeds:
+	sent = bigram_model.get_bigram_sentence(seed, word_lengths, len(word_lengths))
+	if (sent != None):
+		sentences.append(sent)
+
+print(sentences)
+print('INFO: -----# of sentences generated: {count}-----'.format(count=len(sentences)))
+'''
