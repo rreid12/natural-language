@@ -8,9 +8,10 @@ The program below takes a recording of a sequence of smartphone keyboard
 clicks and isolates each peak, calculates the Fast Fourier Transform (FFT)
 of each peak, and determines if either a letter or space was typed, then 
 saves a sequence of numbers representing the number of letters each word 
-contains to a text file as specified by the user. Note that sends and 
-backspaces are ignored now, but functionality accomidateing for these will 
-be added later.
+contains to a text file as specified by the user. Backspace and send tones 
+are also taken into account. Along with this information, the time it takes
+for each word to be typed is also recorded. Note that the format for time 
+logging the words may change.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %}
 clc;% clears the console
@@ -32,21 +33,23 @@ the above can be commented out and the line below can be used
 %[audioWave, sampleRate] = audioread('audio\file\location\here.wav');
 
 idx = 1;%index that will be used to iterate through samples
-jdx = 1;%index that will be used to save information to other variables
+jdx = 1;%index that will be used to save amplitude information 
 
 sampleLength = 1000;%number of samples being used to calculate the FFT
+timeStep = 1/sampleRate;%duration of time between samples
 
 while idx <= length(audioWave) 
     
     if abs(audioWave(idx,1)) >= 0.135 
-        
+       
+        clickOccured(jdx,1) = idx;
         click = audioWave(idx-(sampleLength/2):idx+((sampleLength/2) - 1));
         parsedAudio{jdx,1} = click;
         jdx = jdx + 1;
-        idx = idx + sampleLength/2;
-        %startTimeAnalysis = 
+        idx = idx + sampleLength/2; 
         
-    end    
+    end   
+    
     idx = idx + 1; 
     
 end 
@@ -54,11 +57,14 @@ end
 %{
 The above while loop ueses idx to iterate through the audio file sample by 
 sample and determines if the absolute value of the amplitude at that sample
-is greater than a set threshold. If it is above this threshold, then a peak 
-has occured. To capture the entire peak, 500 samples before and after this
-determined point are saved to a sperate cell array. The iterator is then
-incremented to 500 samples after the point the peak was found. This porcess
-is repeated until idx exceeds the number of samples in the aduio file
+is greater than a set threshold. If it is above this threshold, then a key 
+press has occured. To capture the entire waveform of the key press, 500 
+samples before and after this determined point are saved to a sperate cell 
+array. The sample at which it was determined that a key press occured is 
+also saved to a seprate column vector called clickOccured The iterator is 
+then incremented to 500 samples after the point the key press was found. 
+This porcess is repeated until idx exceeds the number of samples in the 
+aduio file
 %}
 
 plotMatrix(1:sampleLength,1:length(parsedAudio)+1) = 0;
@@ -67,11 +73,12 @@ frequency = -sampleRate/2:df:sampleRate/2-df;
 plotMatrix(1:sampleLength,1) = frequency;
 
 %{
-The above code creates a matrix that will store the FFT of each peak
-captured. This matrix will be 1000 rows long accomidating for the sample
-length used, and will have 1 column deadicated to each peak, with the
-exception of the first column, which will contain the frequency range. This
-way, the data can be correlated without any need to actually graph the FFT. 
+The above code creates a matrix that will store the FFT of waveform for
+each key press captured. This matrix will be 1000 rows long accomidating 
+for the sample length used, and will have 1 column deadicated to each 
+waveform, with the exception of the first column, which will contain the 
+frequency range. This way, the data can be correlated without any need to 
+actually graph the FFT. 
 %}
 
 jdx = 1;%Index used above must be reset because of the different context
@@ -86,39 +93,66 @@ detection of a space, the pointer jdx is incremented to the next index.
 Note that it's length is equal to the number of peaks that occur.
 %}
 
+startWord = 1;
+endWord = 1;
+
+%{
+The two above indexes will be used to mark the beginning and end of a word
+in the column vector timeLog.
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%FFT LOOP%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for idx =  1:length(parsedAudio)
     
-    rawToFFT =abs(fftshift(fft(parsedAudio{idx,1}))/length(fft(parsedAudio{idx,1})));
-    plotMatrix(1:sampleLength,idx+1) = rawToFFT;
-
+    plotMatrix(1:sampleLength,idx+1) = abs(fftshift(fft(parsedAudio{idx,1}))/length(fft(parsedAudio{idx,1})));
     [m,n] = max(plotMatrix(:,idx+1));
 
-    if abs(plotMatrix(n,1)) > 1700 && abs(plotMatrix(n,1)) < 1900 
+    if abs(plotMatrix(n,1)) > 1700 && abs(plotMatrix(n,1)) < 1900%letter 
         wordLengthArray(jdx,1) = wordLengthArray(jdx,1) + 1;
-
-    elseif abs(plotMatrix(n,1)) > 1200 && abs(plotMatrix(n,1)) < 1400
+        endWord = endWord + 1; 
+        %clickOccured(idx,2) = 1;
+        %^uncommenting this line will allow the user to see how much time
+        % there was between keypresses
+        
+    elseif abs(plotMatrix(n,1)) > 1200 && abs(plotMatrix(n,1)) < 1400%space
+        timeLog(jdx,1) = (((clickOccured(endWord,1)+499) - (clickOccured(startWord,1)-500))*timeStep);
+        startWord = endWord + 2;
+        endWord = startWord;
         jdx = jdx + 1;
-       
-    elseif abs(plotMatrix(n,1)) > 700 && abs(plotMatrix(n,1)) < 900 
+        %clickOccured(idx,2) = 2;
+        %^uncommenting this line will allow the user to see how much time
+        % there was between keypresses
+        
+    elseif abs(plotMatrix(n,1)) > 700 && abs(plotMatrix(n,1)) < 900%backspace 
 
            switch wordLengthArray(jdx, 1)
 
                case 0
                    
-                   if jdx ~= 1
+                   if jdx ~= 1  
                    
                        jdx = jdx - 1;
-                   
+                  
                    end
                    
                otherwise
                    wordLengthArray(jdx, 1) = wordLengthArray(jdx, 1) - 1;            
            end
+           
+           %clickOccured(idx,2) = 3;
+           %^uncommenting this line will allow the user to see how much time
+           % there was between keypresses
 
-   elseif abs(plotMatrix(n,1)) > 200  && abs(plotMatrix(n,1)) < 400
+   elseif abs(plotMatrix(n,1)) > 200  && abs(plotMatrix(n,1)) < 400%send
+       
+       timeLog(jdx,1) = (((clickOccured(endWord,1)+499)-(clickOccured(startWord,1)-500))*timeStep);
        
        parsedAudio = parsedAudio(1:idx,1);
        plotMatrix = plotMatrix(1:sampleLength,1:idx+1);
+       clickOccured(idx,2) = 4;
+       %clickOccured = clickOccured(1:idx,1:2);
+       %^uncommenting these line will allow the user to see how much time
+       % there was between keypresses 
        break;
  
    end
@@ -133,30 +167,35 @@ value of this new column is then computed, returning the max value and the
 index in the matrix where it occured. Because the FFT is in the same matrix
 as the frequency range, the same index where this max occcured can be used
 to determine the frequency of this maximum. If the frequency is between
-1700 and 1900 Hz, then the peak is a letter and the value wordLengthArray 
-at the current index, represented by jdx, is incemented. If the frequency 
-at the maximum value is between 1200 and 1400 Hz, then the peak is a space,
-and then jdx is incremented, representing the start of a new letter. If the
-frequency at the maximum value is between 700 and 900 Hz, then a backspace
-occured. If the current index of the wordLengthArray is not equal to 1,
-this means that it is not the first index of the array. This eliminates the
-possibility of throwing an error when a backspace occurs as the first peak.
-If this condition is met, them if the value at the current index is greater
-than 0, the value is decremented, otherwise the current index is moved to
-the previous value. Finally, if the frequency is at the maximum value is
-between 200 and 400 Hz, then the peak is a send signifying the end of the 
-message. In this case the remaining peaks are removed from the parsedAudio
+1700 and 1900 Hz, then the key press is a letter and the value 
+wordLengthArray at the current index, represented by jdx, and the marker 
+indicating the end of a word, represented by endWord, are incemented. If 
+the frequency at the maximum value is between 1200 and 1400 Hz, then the 
+key press is a space, and then jdx is incremented, representing the start of a 
+new letter. The index of endWord is moved two spaces forward. This takes 
+into the account of the next keypress being a space. The index of startWord
+is then set to endWord, effectively resetting where the next word begins in
+the clickOccured array. If the frequency at the maximum value is between 
+700 and 900 Hz, then a backspace occured. If the current index of the 
+wordLengthArray is not equal to 1, this means that it is not the first 
+index of the array. This eliminates the possibility of throwing an error 
+when a backspace occurs as the first key press. If this condition is met, them 
+if the value at the current index is greater than 0, the value is 
+decremented, otherwise the current index is moved to the previous value. 
+Finally, if the frequency is at the maximum value is between 200 and 400 
+Hz, then the key press is a send signifying the end of the message. In this case
+the remaining peaks are removed from the parsedAudio
 cell array and any excess columns from the plotMatrix are removed. The for
 loop is then broken out of.
 %}
 
 wordLengthArray = nonzeros(wordLengthArray);
-%removes any zero from the column vector 
+%removes any zero from the column vector
 
 fprintf(1,'\n%d words occured in the provided audio sample:\n\n', length(wordLengthArray));
 
 for idx = 1:length(wordLengthArray) 
-    fprintf('\tword %d:\t\t%d letters\n',idx,wordLengthArray(idx,1));
+    fprintf('\tword %d:\t\t%d letters\t%0.4f seconds\n',idx,wordLengthArray(idx,1),timeLog(idx,1));
 end
 
 %{
@@ -170,7 +209,9 @@ if isempty(filename)
     fprintf('No file was chosesn\n');
 else
     fileID = fopen(filename,'wt');
-    fprintf(fileID,'%d\n',wordLengthArray);
+    for idx = 1:length(wordLengthArray) 
+        fprintf(fileID,'%d %0.4f\n',wordLengthArray(idx,1),timeLog(idx,1));
+    end
     fclose(fileID);
     fprintf('\nThe above information has been stored to %s\n', filename);
 end
@@ -182,5 +223,43 @@ new text file is created and wordLengthArray is printed to the newly
 created file. Note that this file is stored to the Documents folder on the
 host computer 
 %}
+%{
+fprintf('\nTime Log\n\n');
+for idx = 1:length(clickOccured)
+    
+    fprintf('\tKeypress %d',idx);
+   
+    switch clickOccured(idx,2)
+       
+        case 1, fprintf('(letter)');
+        case 2, fprintf('(space)');
+        case 3, fprintf('(backspace)');
+        case 4, fprintf('(send)');
+        otherwise, fprintf('(unknown)');
+       
+    end
+   
+    if clickOccured(idx,2) ~= 4
+        timeBetweenKeypresses = (clickOccured(idx+1,1)-clickOccured(idx,1))*timeStep;
+        fprintf('\t\t%0.4f\n',timeBetweenKeypresses);
+        
+    else
+        fprintf('\t\tEND MESSAGE\n')
+        break;
+    end
+end
+%}
 
-%new comments, code, whatever
+%{
+uncommentting the above for loop and marked lines in the FFT loop will
+allow hte user to see the time between clicks. This is calculated by
+iterating through the clickOccured column vector and the difference between
+the values at the current index and the next index is multiplied by the
+timestep, calculating the time between keypresses. The time beging
+displayed is the time from the current key press to the next key press i.e.
+    
+    keypress 1(Identifier)  <timeTillKeypress2>
+    keypress 2(Identifier)  <timeTillKeypress3>
+    ...
+    keypress 16(send)       END MESSAGE
+%}
