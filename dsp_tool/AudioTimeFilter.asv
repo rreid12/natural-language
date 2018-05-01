@@ -214,8 +214,7 @@ In this casethe remaining peaks are removed from the parsedAudio
 cell array and any excess columns from the plotMatrix are removed. The for
 loop is then broken out of. If a send keypress does not occur in the
 provided audio sample, then endWord must be decremneted to compnstaion for
-its previous incrmenation. The time for the word to be typed is then
-calculated and put into the next index in the timeLog column vector
+its pr
 %}
 
 wordLengthArray = nonzeros(wordLengthArray);
