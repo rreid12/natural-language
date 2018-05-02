@@ -21,6 +21,7 @@ fprintf('Please enter the location of an audio file you wish to analyze:\n');
 
 [file, path] = uigetfile({'*.wav';}, 'Input Audio file');
 if file==0
+    fprintf('\nNo file chosen. Exiting.\n');
     return
 end
 audioFile = fullfile(path, file);
