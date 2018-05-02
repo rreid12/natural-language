@@ -17,8 +17,13 @@ logging the words may change.
 clc;% clears the console
 clearvars;%Clear all variables from the workspace
 
-prompt = 'Please enter the location of an audio file you wish to analyze:\n';
-audioFile = input(prompt,'s');
+fprintf('Please enter the location of an audio file you wish to analyze:\n');
+
+[file, path] = uigetfile({'*.wav';}, 'Input Audio file');
+if file==0
+    return
+end
+audioFile = fullfile(path, file);
 [audioWave, sampleRate] = audioread(audioFile);
 
 %{
@@ -232,11 +237,12 @@ The above for loop iterates through wordLengthsArray and prints the word
 index and how many letters there were for that index.
 %}
 
-prompt = '\nPlease enter a location and file name with a .txt extention to save this information to:\n';
-filename = input(prompt,'s');
-if isempty(filename) 
-    fprintf('No file was chosesn\n');
+fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
+[file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
+if file == 0
+    fprintf('\nNo file was chosen. Dumping results to console.\n');
 else
+    filename = fullfile(path, file);
     fileID = fopen(filename,'wt');
     for idx = 1:length(wordLengthArray) 
         fprintf(fileID,'%d %0.4f\n',wordLengthArray(idx,1),timeLog(idx,1));
