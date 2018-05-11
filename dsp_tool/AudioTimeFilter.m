@@ -260,12 +260,25 @@ created file. Note that this file is stored to the Documents folder on the
 host computer 
 %}   
 
-fprintf('\nTime Log\n\n');
+jdx = 1;
 for idx = 1:length(clickOccured)
+    
+    if clickOccured(idx,2)~= 0
+        validKeypress(jdx,1) = clickOccured(idx,1);
+        validKeypress(jdx,2) = clickOccured(idx,2);
+        jdx = jdx + 1;
+    end
+    
+end
+
+fprintf('\nTime Log:\n\n');
+fprintf('\tA total of %d keypresses were found...\n', length(clickOccured));
+fprintf('\t%d were deemed unidentifiable and were ignored.\n\n', (length(clickOccured) - length(validKeypress))); 
+for idx = 1:length(validKeypress)
     
     fprintf('\tKeypress %d',idx);
    
-    switch clickOccured(idx,2)
+    switch validKeypress(idx,2)
        
         case 1, fprintf('(letter)');
         case 2, fprintf('(space)');
@@ -275,9 +288,9 @@ for idx = 1:length(clickOccured)
        
     end
    
-    if idx ~= length(clickOccured)
+    if idx ~= length(validKeypress)
         
-        timeBetweenKeypresses = (clickOccured(idx+1,1)-clickOccured(idx,1))*timeStep;
+        timeBetweenKeypresses = (validKeypress(idx+1,1)-validKeypress(idx,1))*timeStep;
         fprintf('\t\t%0.4f\n',timeBetweenKeypresses);
         
     else
