@@ -14,18 +14,41 @@ for each word to be typed is also recorded. Note that the format for time
 logging the words may change.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %}
+function dsp_tool = AudioTimeFilter(waveform)
+
 clc;% clears the console
-clearvars;%Clear all variables from the workspace
+clearvars -except waveform;%Clear all variables from the workspace
 
-fprintf('Please enter the location of an audio file you wish to analyze:\n');
+if nargin == 1
+    p = py.os.path.pathsep;
+    waveform = [waveform char(p)]
 
-[file, path] = uigetfile({'*.wav';}, 'Input Audio file');
-if file==0
-    fprintf('\nNo file chosen. Exiting.\n');
-    return
+    audioFile = erase(waveform, ":");
+else if nargin == 0
+    fprintf('Please enter the location of an audio file you wish to analyze:\n');
+
+    [file, path] = uigetfile({'*.wav';}, 'Input Audio file');
+    if file==0
+        fprintf('\nNo file chosen. Exiting.\n');
+        return
+    end
+    audioFile = fullfile(path, file);
 end
-audioFile = fullfile(path, file);
+
+
+
 [audioWave, sampleRate] = audioread(audioFile);
+
+%{
+Above code checks the number of input arguments...
+if its 0, that means AudioTimeFilter has been run locally and the user
+wants to select an audio file from their filesystem
+
+if its 1, we assume that the call has come from our python script, and a 
+string has been provided from python. At this point, we need to convert the
+string (python object) to a matlab char array, then uset that filepath as 
+the audio file
+%}
 
 %{
 read in the audio inofrmation from an audio file as provided by the user. 
@@ -291,14 +314,16 @@ for idx = 1:length(validKeypress)
     if idx ~= length(validKeypress)
         
         timeBetweenKeypresses = (validKeypress(idx+1,1)-validKeypress(idx,1))*timeStep;
+        keyPressTimeLog(idx,1) = timeBetweenKeypresses;
         fprintf('\t\t%0.4f\n',timeBetweenKeypresses);
         
     else
         fprintf('\t\tEND MESSAGE\n')
     end
 end
-
-
+outputFile = matfile('testing.mat', 'Writable', true);
+save('testing.mat');
+end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
 allow hte user to see the time between clicks. This is calculated by
