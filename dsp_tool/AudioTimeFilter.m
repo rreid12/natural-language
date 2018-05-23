@@ -14,18 +14,42 @@ for each word to be typed is also recorded. Note that the format for time
 logging the words may change.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %}
-clc;% clears the console
-clearvars;%Clear all variables from the workspace
+function dsp_tool = AudioTimeFilter(waveform)
 
-fprintf('Please enter the location of an audio file you wish to analyze:\n');
+clc; % clears the console
+clearvars -except waveform; %Clear all variables from the workspace
 
-[file, path] = uigetfile({'*.wav';}, 'Input Audio file');
-if file==0
-    fprintf('\nNo file chosen. Exiting.\n');
-    return
+if nargin == 1
+    p = py.os.path.pathsep;
+    waveform = [waveform char(p)]
+
+    audioFile = erase(waveform, ":");
+else if nargin == 0
+    fprintf('Please enter the location of an audio file you wish to analyze:\n');
+
+    [file, path] = uigetfile({'*.wav';}, 'Input Audio file');
+    if file==0
+        fprintf('\nNo file chosen. Exiting.\n');
+        return
+    end
+    audioFile = fullfile(path, file);
+    end
 end
-audioFile = fullfile(path, file);
+
+
+
 [audioWave, sampleRate] = audioread(audioFile);
+
+%{
+Above code checks the number of input arguments...
+if its 0, that means AudioTimeFilter has been run locally and the user
+wants to select an audio file from their filesystem
+
+if its 1, we assume that the call has come from our python script, and a 
+string has been provided from python. At this point, we need to convert the
+string (python object) to a matlab char array, then uset that filepath as 
+the audio file
+%}
 
 %{
 read in the audio inofrmation from an audio file as provided by the user. 
@@ -238,28 +262,6 @@ The above for loop iterates through wordLengthsArray and prints the word
 index and how many letters there were for that index.
 %}
 
-fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
-[file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
-if file == 0
-    fprintf('\nNo file was chosen. Dumping results to console.\n');
-else
-    filename = fullfile(path, file);
-    fileID = fopen(filename,'wt');
-    for idx = 1:length(wordLengthArray) 
-        fprintf(fileID,'%d %0.4f\n',wordLengthArray(idx,1),timeLog(idx,1));
-    end
-    fclose(fileID);
-    fprintf('\nThe above information has been stored to %s\n', filename);
-end
-
-%{
-The above code block requests a file name from the user that will be used
-to save the listed information. Using this file name as an identifier, a
-new text file is created and wordLengthArray is printed to the newly
-created file. Note that this file is stored to the Documents folder on the
-host computer 
-%}   
-
 jdx = 1;
 for idx = 1:length(clickOccured)
     
@@ -291,6 +293,7 @@ for idx = 1:length(validKeypress)
     if idx ~= length(validKeypress)
         
         timeBetweenKeypresses = (validKeypress(idx+1,1)-validKeypress(idx,1))*timeStep;
+        keyPressTimeLog(idx,1) = timeBetweenKeypresses;
         fprintf('\t\t%0.4f\n',timeBetweenKeypresses);
         
     else
@@ -299,13 +302,44 @@ for idx = 1:length(validKeypress)
 end
 
 
+if nargin == 1
+    
+    outputFile = matfile('to_language_model.mat', 'Writable', true);
+    save('to_language_model.mat');
+else
+    fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
+    [file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
+    if file == 0
+        fprintf('\nNo file was chosen. Dumping results to console.\n');
+    else
+        filename = fullfile(path, file);
+        fileID = fopen(filename,'wt');
+        for idx = 1:length(wordLengthArray) 
+            fprintf(fileID,'%d %0.4f\n',wordLengthArray(idx,1),timeLog(idx,1));
+        end
+        fclose(fileID);
+        fprintf('\nThe above information has been stored to %s\n', filename);
+    end
+end
+
+
+%{
+The above code block requests a file name from the user that will be used
+to save the listed information. Using this file name as an identifier, a
+new text file is created and wordLengthArray is printed to the newly
+created file. Note that this file is stored to the Documents folder on the
+host computer 
+%}
+
+save('variables.mat','parsedAudio', 'plotMatrix', 'clickOccured', 'validKeypress', 'keyPressTimeLog');
+end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
 allow hte user to see the time between clicks. This is calculated by
 iterating through the clickOccured column vector and the difference between
 the values at the current index and the next index is multiplied by the
 timestep, calculating the time between keypresses. The time beging
-displayed is the time from the current key press to the next key press i.e.
+fprintflayed is the time from the current key press to the next key press i.e.
     
     keypress 1(Identifier)  <timeTillKeypress2>
     keypress 2(Identifier)  <timeTillKeypress3>
