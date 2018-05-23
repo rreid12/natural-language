@@ -16,8 +16,8 @@ logging the words may change.
 %}
 function dsp_tool = AudioTimeFilter(waveform)
 
-clc;% clears the console
-clearvars -except waveform;%Clear all variables from the workspace
+clc; % clears the console
+clearvars -except waveform; %Clear all variables from the workspace
 
 if nargin == 1
     p = py.os.path.pathsep;
@@ -33,6 +33,7 @@ else if nargin == 0
         return
     end
     audioFile = fullfile(path, file);
+    end
 end
 
 
@@ -261,28 +262,6 @@ The above for loop iterates through wordLengthsArray and prints the word
 index and how many letters there were for that index.
 %}
 
-fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
-[file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
-if file == 0
-    fprintf('\nNo file was chosen. Dumping results to console.\n');
-else
-    filename = fullfile(path, file);
-    fileID = fopen(filename,'wt');
-    for idx = 1:length(wordLengthArray) 
-        fprintf(fileID,'%d %0.4f\n',wordLengthArray(idx,1),timeLog(idx,1));
-    end
-    fclose(fileID);
-    fprintf('\nThe above information has been stored to %s\n', filename);
-end
-
-%{
-The above code block requests a file name from the user that will be used
-to save the listed information. Using this file name as an identifier, a
-new text file is created and wordLengthArray is printed to the newly
-created file. Note that this file is stored to the Documents folder on the
-host computer 
-%}   
-
 jdx = 1;
 for idx = 1:length(clickOccured)
     
@@ -321,8 +300,37 @@ for idx = 1:length(validKeypress)
         fprintf('\t\tEND MESSAGE\n')
     end
 end
-outputFile = matfile('testing.mat', 'Writable', true);
-save('testing.mat');
+
+
+if nargin == 1
+    
+    outputFile = matfile('taco.mat', 'Writable', true);
+    save('taco.mat');
+else
+    fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
+    [file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
+    if file == 0
+        fprintf('\nNo file was chosen. Dumping results to console.\n');
+    else
+        filename = fullfile(path, file);
+        fileID = fopen(filename,'wt');
+        for idx = 1:length(wordLengthArray) 
+            fprintf(fileID,'%d %0.4f\n',wordLengthArray(idx,1),timeLog(idx,1));
+        end
+        fclose(fileID);
+        fprintf('\nThe above information has been stored to %s\n', filename);
+    end
+end
+
+
+%{
+The above code block requests a file name from the user that will be used
+to save the listed information. Using this file name as an identifier, a
+new text file is created and wordLengthArray is printed to the newly
+created file. Note that this file is stored to the Documents folder on the
+host computer 
+%}   
+
 end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
@@ -330,7 +338,7 @@ allow hte user to see the time between clicks. This is calculated by
 iterating through the clickOccured column vector and the difference between
 the values at the current index and the next index is multiplied by the
 timestep, calculating the time between keypresses. The time beging
-displayed is the time from the current key press to the next key press i.e.
+fprintflayed is the time from the current key press to the next key press i.e.
     
     keypress 1(Identifier)  <timeTillKeypress2>
     keypress 2(Identifier)  <timeTillKeypress3>
