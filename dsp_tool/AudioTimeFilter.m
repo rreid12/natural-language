@@ -304,8 +304,8 @@ end
 
 if nargin == 1
     
-    outputFile = matfile('taco.mat', 'Writable', true);
-    save('taco.mat');
+    outputFile = matfile('to_language_model.mat', 'Writable', true);
+    save('to_language_model.mat');
 else
     fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
     [file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
@@ -329,8 +329,9 @@ to save the listed information. Using this file name as an identifier, a
 new text file is created and wordLengthArray is printed to the newly
 created file. Note that this file is stored to the Documents folder on the
 host computer 
-%}   
+%}
 
+save('variables.mat','parsedAudio', 'plotMatrix', 'clickOccured', 'validKeypress', 'keyPressTimeLog');
 end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
