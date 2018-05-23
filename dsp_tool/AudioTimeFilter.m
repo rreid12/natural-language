@@ -323,6 +323,9 @@ for idx = 1:length(validKeypress)
 end
 outputFile = matfile('testing.mat', 'Writable', true);
 save('testing.mat');
+
+save('variables.mat','parsedAudio', 'plotMatrix', 'clickOccured', 'validKeypress', 'keyPressTimeLog');
+
 end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
