@@ -15,6 +15,7 @@ logging the words may change.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %}
 function dsp_tool = AudioTimeFilter(waveform)
+%% Reading in the audio file
 
 clc; % clears the console
 clearvars -except waveform; %Clear all variables from the workspace
@@ -60,7 +61,9 @@ vecotrs or matracies for consistency. Alternatively, for testing purposes,
 the above can be commented out and the line below can be used
 %}
 
-%[audioWave, sampleRate] = audioread('audio\file\location\here.wav');
+%[audioWave, sampleRate] = audioread('audio\file\location\here.wav
+
+%% Finding Percieved Keypresses
 
 idx = 1;%index that will be used to iterate through samples
 jdx = 1;%index that will be used to save amplitude information 
@@ -96,6 +99,8 @@ then incremented to 500 samples after the point the key press was found.
 This porcess is repeated until idx exceeds the number of samples in the 
 aduio file
 %}
+
+%% Initializing and Instantiating Varibles to Hold FFT Information
 
 plotMatrix(1:sampleLength,1:length(parsedAudio)+1) = 0;
 df = sampleRate/sampleLength;
@@ -135,15 +140,15 @@ then a secondary procedure must be taken to ensure that the timing can be
 logged properly.
 %}
 
+%% Calculating the FFT of each perceived keypress 
 
 for idx =  1:length(parsedAudio)
     
     plotMatrix(1:sampleLength,idx+1) = abs(fftshift(fft(parsedAudio{idx,1}))/length(fft(parsedAudio{idx,1})));
     [m,n] = max(plotMatrix(:,idx+1));
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                               LETTER
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%     LETTER     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     if abs(plotMatrix(n,1)) > 1700 && abs(plotMatrix(n,1)) < 1900 
         wordLengthArray(jdx,1) = wordLengthArray(jdx,1) + 1;
         endWord = endWord + 1; 
@@ -151,9 +156,8 @@ for idx =  1:length(parsedAudio)
         %^uncommenting this line will allow the user to see how much time
         % there was between keypresses
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                               SPACE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%     SPACE     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     elseif abs(plotMatrix(n,1)) > 1200 && abs(plotMatrix(n,1)) < 1400
         endWord = endWord - 1;
         timeLog(jdx,1) = (((clickOccured(endWord,1)+499) - (clickOccured(startWord,1)-500))*timeStep);
@@ -164,9 +168,7 @@ for idx =  1:length(parsedAudio)
         %^uncommenting this line will allow the user to see how much time
         % there was between keypresses
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                             BACKSPACE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%     BACKSPACE     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     elseif abs(plotMatrix(n,1)) > 700 && abs(plotMatrix(n,1)) < 900
 
            switch wordLengthArray(jdx,1)
@@ -184,12 +186,11 @@ for idx =  1:length(parsedAudio)
            end
            
            clickOccured(idx,2) = 3;
-           %^uncommenting this line will allow the user to see how much time
-           % there was between keypresses
+          %^uncommenting this line will allow the user to see how much time
+          % there was between keypresses
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                               SEND
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%     SEND     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
    elseif abs(plotMatrix(n,1)) > 200  && abs(plotMatrix(n,1)) < 400
        
        timeLog(jdx,1) = (((clickOccured(endWord,1)+499)-(clickOccured(startWord,1)-500))*timeStep);
@@ -248,6 +249,8 @@ its previous incrmenation. The time for the word to be typed is then
 calculated and put into the next index in the timeLog column vector
 %}
 
+%% Elminitng Keypresses Perceived as Noise
+
 wordLengthArray = nonzeros(wordLengthArray);
 %removes any zero from the column vector
 
@@ -272,6 +275,8 @@ for idx = 1:length(clickOccured)
     end
     
 end
+
+%% Printing Output to Console
 
 fprintf('\nTime Log:\n\n');
 fprintf('\tA total of %d keypresses were found...\n', length(clickOccured));
@@ -301,6 +306,7 @@ for idx = 1:length(validKeypress)
     end
 end
 
+%% Saving the Output
 
 if nargin == 1
     
