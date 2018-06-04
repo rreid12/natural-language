@@ -63,14 +63,17 @@ the above can be commented out and the line below can be used
 
 %[audioWave, sampleRate] = audioread('audio\file\location\here.wav
 
-%% Finding Percieved Keypresses
+%% Finding Percieved Keypresses 
 
 idx = 1;%index that will be used to iterate through samples
 jdx = 1;%index that will be used to save amplitude information 
 
-sampleLength = 1000;%number of samples being used to calculate the FFT
+sampleLength = 200;%number of samples being used to calculate the FFT
 timeStep = 1/sampleRate;%duration of time between samples
 
+
+
+%{
 while idx <= length(audioWave) 
     
     if abs(audioWave(idx,1)) >= 0.135 
@@ -86,6 +89,48 @@ while idx <= length(audioWave)
     idx = idx + 1; 
     
 end 
+%}
+ 
+while idx < length(audioWave)
+    
+    if abs(audioWave(idx,1)) >= 0.135
+        
+        waveWindow = abs(audioWave(idx:idx+sampleLength));
+        keypressOccurred(jdx,1) = idx;
+        parsedAudio(:,jdx) = audioWave(idx:idx+200);
+        
+        [amp,t] = findpeaks(waveWindow);
+        model = fitlm(t,amp);        
+        slopeArray(jdx,1) = model.Coefficients{{'x1'},{'Estimate'}};
+        
+        %if slope > lowerThreshold && slope < upperThreshold
+            
+            %parsedAudio(:,jdx) = waveWindow;
+        
+        %end
+        
+        %{
+            a = model.Coefficients{{'x1'},{'Estimate'}};
+            b = model.Coefficients{{'(Intercept)'},{'Estimate'}};
+            x = 1:1:sampleLength+1;
+            y = a*x+b;
+
+            plot(waveWindow);
+            hold on
+            plot(x,y);
+            scatter(t,amp);
+        %}
+            
+        jdx = jdx + 1;
+        idx = idx + sampleLength;
+        
+    else
+        
+        idx = idx + 1;
+       
+    end
+    
+end
 
 %{
 The above while loop ueses idx to iterate through the audio file sample by 
@@ -100,12 +145,12 @@ This porcess is repeated until idx exceeds the number of samples in the
 aduio file
 %}
 
-%% Initializing and Instantiating Varibles to Hold FFT Information
+%% Initializing and Instantiating Variables to hold FFT Information
 
-plotMatrix(1:sampleLength,1:length(parsedAudio)+1) = 0;
+plotMatrix(1:sampleLength+1,1:size(parsedAudio,2)+1) = 0;
 df = sampleRate/sampleLength;
-frequency = -sampleRate/2:df:sampleRate/2-df;
-plotMatrix(1:sampleLength,1) = frequency;
+frequency = -sampleRate/2:df:sampleRate/2;
+plotMatrix(:,1) = frequency;
 
 %{
 The above code creates a matrix that will store the FFT of waveform for
@@ -118,7 +163,7 @@ actually graph the FFT.
 
 jdx = 1;%Index used above must be reset because of the different context
 
-wordLengthArray(1:length(parsedAudio),1) = 0;
+wordLengthArray(1:size(parsedAudio,2),1) = 0;
 
 %{
 The above column vector is created to house the number of letters in each
@@ -140,11 +185,10 @@ then a secondary procedure must be taken to ensure that the timing can be
 logged properly.
 %}
 
-%% Calculating the FFT of each perceived keypress 
 
-for idx =  1:length(parsedAudio)
+for idx =  1:size(parsedAudio,2)
     
-    plotMatrix(1:sampleLength,idx+1) = abs(fftshift(fft(parsedAudio{idx,1}))/length(fft(parsedAudio{idx,1})));
+    plotMatrix(:,idx+1) = abs(fftshift(fft(parsedAudio(:,idx)))/length(fft(parsedAudio(:,idx))));
     [m,n] = max(plotMatrix(:,idx+1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%     LETTER     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -152,7 +196,7 @@ for idx =  1:length(parsedAudio)
     if abs(plotMatrix(n,1)) > 1700 && abs(plotMatrix(n,1)) < 1900 
         wordLengthArray(jdx,1) = wordLengthArray(jdx,1) + 1;
         endWord = endWord + 1; 
-        clickOccured(idx,2) = 1;
+        keypressOccurred(idx,2) = 1;
         %^uncommenting this line will allow the user to see how much time
         % there was between keypresses
 
@@ -160,11 +204,11 @@ for idx =  1:length(parsedAudio)
 
     elseif abs(plotMatrix(n,1)) > 1200 && abs(plotMatrix(n,1)) < 1400
         endWord = endWord - 1;
-        timeLog(jdx,1) = (((clickOccured(endWord,1)+499) - (clickOccured(startWord,1)-500))*timeStep);
+        timeLog(jdx,1) = ((keypressOccurred(endWord,1)+200) - (keypressOccurred(startWord,1)))*timeStep;
         startWord = endWord + 2;
         endWord = startWord;
         jdx = jdx + 1;
-        clickOccured(idx,2) = 2;
+        keypressOccurred(idx,2) = 2;
         %^uncommenting this line will allow the user to see how much time
         % there was between keypresses
 
@@ -185,7 +229,7 @@ for idx =  1:length(parsedAudio)
                    wordLengthArray(jdx, 1) = wordLengthArray(jdx, 1) - 1;            
            end
            
-           clickOccured(idx,2) = 3;
+          %clickOccured(idx,2) = 3;
           %^uncommenting this line will allow the user to see how much time
           % there was between keypresses
 
@@ -193,23 +237,23 @@ for idx =  1:length(parsedAudio)
 
    elseif abs(plotMatrix(n,1)) > 200  && abs(plotMatrix(n,1)) < 400
        
-       timeLog(jdx,1) = (((clickOccured(endWord,1)+499)-(clickOccured(startWord,1)-500))*timeStep);
+       timeLog(jdx,1) = (((keypressOccurred(endWord,1))-(keypressOccurred(startWord,1)))*timeStep);
        
        parsedAudio = parsedAudio(1:idx,1);
        plotMatrix = plotMatrix(1:sampleLength,1:idx+1);
-       clickOccured(idx,2) = 4;
+       keypressOccurred(idx,2) = 4;
        messageSent = 1;
-       clickOccured = clickOccured(1:idx,1:2);
+       keypressOccurred = keypressOccurred(1:idx,1:2);
        %^uncommenting this line will allow the user to see how much time
        % there was between keypresses 
        break;
  
     end
     
-    if idx == length(parsedAudio) && messageSent == 0
+    if idx == size(parsedAudio,2) && messageSent == 0
    
         endWord = endWord - 1;
-        timeLog(jdx,1) = (((clickOccured(endWord,1)+499)-(clickOccured(startWord,1)-500))*timeStep);
+        timeLog(jdx,1) = (((keypressOccurred(endWord,1)+499)-(keypressOccurred(startWord,1)-500))*timeStep);
     
     end
     
@@ -266,11 +310,11 @@ index and how many letters there were for that index.
 %}
 
 jdx = 1;
-for idx = 1:length(clickOccured)
+for idx = 1:length(keypressOccurred)
     
-    if clickOccured(idx,2)~= 0
-        validKeypress(jdx,1) = clickOccured(idx,1);
-        validKeypress(jdx,2) = clickOccured(idx,2);
+    if keypressOccurred(idx,2)~= 0
+        validKeypress(jdx,1) = keypressOccurred(idx,1);
+        validKeypress(jdx,2) = keypressOccurred(idx,2);
         jdx = jdx + 1;
     end
     
@@ -279,8 +323,8 @@ end
 %% Printing Output to Console
 
 fprintf('\nTime Log:\n\n');
-fprintf('\tA total of %d keypresses were found...\n', length(clickOccured));
-fprintf('\t%d were deemed unidentifiable and were ignored.\n\n', (length(clickOccured) - length(validKeypress))); 
+fprintf('\tA total of %d keypresses were found...\n', length(keypressOccurred));
+fprintf('\t%d were deemed unidentifiable and were ignored.\n\n', (length(keypressOccurred) - length(validKeypress))); 
 for idx = 1:length(validKeypress)
     
     fprintf('\tKeypress %d',idx);
@@ -330,14 +374,15 @@ end
 
 
 %{
-The above code block requests a file name from the user that will be used
+The above code block requests a filename from the user that will be used
 to save the listed information. Using this file name as an identifier, a
 new text file is created and wordLengthArray is printed to the newly
 created file. Note that this file is stored to the Documents folder on the
 host computer 
 %}
 
-save('variables.mat','parsedAudio', 'plotMatrix', 'clickOccured', 'validKeypress', 'keyPressTimeLog');
+%save('variables.mat','parsedAudio', 'plotMatrix', 'clickOccured', 'validKeypress', 'keyPressTimeLog');
+save('variables.mat');
 end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
