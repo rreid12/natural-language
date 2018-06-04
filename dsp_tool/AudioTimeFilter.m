@@ -239,7 +239,7 @@ for idx =  1:size(parsedAudio,2)
        
        timeLog(jdx,1) = (((keypressOccurred(endWord,1))-(keypressOccurred(startWord,1)))*timeStep);
        
-       parsedAudio = parsedAudio(1:idx,1);
+       parsedAudio = parsedAudio(:,1:idx);
        plotMatrix = plotMatrix(1:sampleLength,1:idx+1);
        keypressOccurred(idx,2) = 4;
        messageSent = 1;
