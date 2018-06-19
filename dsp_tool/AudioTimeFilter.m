@@ -285,7 +285,7 @@ for i = 1:length(validKeypresses)
     if i ~= length(validKeypresses)
 
         timeBetweenKeypresses = (validKeypresses{i+1,1}-validKeypresses{i,1})*timeStep;
-        keyPressTimeLog(i,1) = timeBetweenKeypresses;
+        keypressTimeLog(i,1) = timeBetweenKeypresses;
         fprintf('\t\t%0.4f\n',timeBetweenKeypresses);
 
     else
