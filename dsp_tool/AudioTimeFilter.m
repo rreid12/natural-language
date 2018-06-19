@@ -140,6 +140,12 @@ end
 
 j = 1;
 
+iShouldExit = ~exist('keypressWave','var');
+if iShouldExit 
+   fprintf('\nNo key presses found in the provided sample. Exiting\n');
+   return;
+end
+
 for i = 1:length(keypressWave)
     
     [m,loc] = max(keypressWave{i,1});
@@ -169,11 +175,12 @@ for i = 1:length(keypressWave)
                 index(j,1) = keypressFound(i,1);
                 type(j,1) = keypressFound(i,2);
                 
+                
             end
             
         otherwise 
             
-            if coeffMatrix(i,1) < 0 && coeffMatrix(i,2) > 0.0007
+            if coeffMatrix(i,1) < 0 && coeffMatrix(i,2) > 0.001
 
                 index(j,1) = keypressFound(i,1);
                 type(j,1) = keypressFound(i,2);
