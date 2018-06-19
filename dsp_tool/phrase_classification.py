@@ -134,12 +134,12 @@ if __name__ == '__main__':
 
 			data_dict[filename] = {}
 
-			data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keyPressTimeLog'])
-			data_dict[filename]['avg_word_typing_time'] = np.average(loader['timeLog'])
+			data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keypressTimeLog'])
+			data_dict[filename]['avg_word_typing_time'] = np.average(loader['wordTimeArray'])
 			data_dict[filename]['isLove'] = True
-			data_dict[filename]['phrase_typing_time'] = np.sum(loader['timeLog'])
-			data_dict[filename]['spc_keypress'] = loader['keyPressTimeLog'][1] #spc - l
-			data_dict[filename]['lttr_keypress1'] = loader['keyPressTimeLog'][2] #l - o
+			data_dict[filename]['phrase_typing_time'] = np.sum(loader['wordTimeArray'])
+			data_dict[filename]['spc_keypress'] = loader['keypressTimeLog'][1] #spc - l
+			data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #l - o
 			#data_dict[filename]['lttr_keypress2'] = loader['keyPressTimeLog'][3] #o - v
 			#data_dict[filename]['lttr_keypress3'] = loader['keyPressTimeLog'][4] #v - e
 
@@ -155,12 +155,12 @@ if __name__ == '__main__':
 
 			data_dict[filename] = {}
 
-			data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keyPressTimeLog'])
-			data_dict[filename]['avg_word_typing_time'] = np.average(loader['timeLog'])
+			data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keypressTimeLog'])
+			data_dict[filename]['avg_word_typing_time'] = np.average(loader['wordTimeArray'])
 			data_dict[filename]['isLove'] = False
-			data_dict[filename]['phrase_typing_time'] = np.sum(loader['timeLog'])
-			data_dict[filename]['spc_keypress'] = loader['keyPressTimeLog'][1] #spc - h
-			data_dict[filename]['lttr_keypress1'] = loader['keyPressTimeLog'][2] #h - a
+			data_dict[filename]['phrase_typing_time'] = np.sum(loader['wordTimeArray'])
+			data_dict[filename]['spc_keypress'] = loader['keypressTimeLog'][1] #spc - h
+			data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #h - a
 			#data_dict[filename]['lttr_keypress2'] = loader['keyPressTimeLog'][3] #a - t
 			#data_dict[filename]['lttr_keypress3'] = loader['keyPressTimeLog'][4] #t - e
 

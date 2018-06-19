@@ -25,6 +25,7 @@ if nargin == 1
     waveform = [waveform char(p)];
 
     audioFile = erase(waveform, ":");
+    file = waveform;
 else if nargin == 0
     fprintf('Please enter the location of an audio file you wish to analyze:\n');
 
