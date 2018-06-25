@@ -334,6 +334,24 @@ host computer
 
 %save('variables.mat','parsedAudio', 'plotMatrix', 'clickOccured', 'validKeypress', 'keyPressTimeLog');
 save('variables.mat');
+%{
+figure
+subplot(5,1,1);
+plot(audioWave);
+title('Original Audio File')
+subplot(5,1,2);
+plot(bandMatrix(:,1))
+title('Letter Band')
+subplot(5,1,3);
+plot(bandMatrix(:,2))
+title('Space Band')
+subplot(5,1,4);
+plot(bandMatrix(:,3))
+title('Backspace Band')
+subplot(5,1,5);
+plot(bandMatrix(:,4))
+title('Send Band')
+%}
 end
 %{
 uncommentting the above for loop and marked lines in the FFT loop will
