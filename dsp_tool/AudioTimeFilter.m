@@ -314,7 +314,7 @@ if nargin == 1
 else
     fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
     [file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
-    if file == 2
+    if file == 0
         fprintf('\nNo file was chosen. Dumping results to console.\n');
     else
         filename = fullfile(path, file);
