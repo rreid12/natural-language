@@ -3,9 +3,10 @@ import scipy.io
 import os
 import json
 import time
+import sys
 
+from matlab_client import MatlabClient
 
-import matlab.engine
 import matplotlib.pyplot as plt
 
 from feature_format import featureFormat, targetFeatureSplit
@@ -48,6 +49,10 @@ def draw_scatter_plot(x_data, y_data):
 	plt.ylabel(y_data)
 	plt.show()
 
+def predict_unseen_wav_file():
+	'''TODO: function make a prediction based on a single unseen .wav file'''
+	pass
+
 '''
 Uses GridSearchCV to search through a given list of paramters for the classifier and returns the 
 best best_estimator_ of the classifiers tested
@@ -62,7 +67,7 @@ def search_classifier_parameters(name, clf, parameters):
     	train_test_split(features, labels, test_size=0.2, random_state=42) 
 
     #can use a selectKBest method for feature selection (in this case, just use all)
-	kbest = SelectKBest(k=5)
+	kbest = SelectKBest(k='all')
 	scaler = MinMaxScaler()
 
 	#create a pipeline and fit it so that features can be selected, scaled, etc. in a smooth step
@@ -102,8 +107,11 @@ if __name__ == '__main__':
 
 	'''
 
-	eng = matlab.engine.start_matlab() #starts python's MATLAB engine
-	args_out = 0 #set number of args to be returned from MATLAB
+	if len(sys.argv) > 1:
+		if sys.argv[1] == '-matlab':
+			client = MatlabClient(['recordings/ily_combo', 'recordings/ihy_combo'],
+				['keypressTimeLog', 'wordTimeArray'])
+
 	data_dict = {}
 
 	'''
@@ -125,47 +133,32 @@ if __name__ == '__main__':
 
 
 	'''
-	for file in os.listdir('recordings/ily_combo'):
-		if file.endswith('.wav'):
-			filename = os.path.join('recordings/ily_combo', file)
-			eng.AudioTimeFilter(filename, nargout=args_out)
+	for file in os.listdir('.data_to_lm'):
+		if file.endswith('.mat'):
+			filename = os.path.join('.data_to_lm', file)
 
-			loader = scipy.io.loadmat('/home/reidr/senior_design/natural-language/dsp_tool/to_language_model.mat')
-
+			loader = scipy.io.loadmat(filename)
 			data_dict[filename] = {}
+
+
+			if 'ily' in filename:
+				data_dict[filename]['isLove'] = True
+			elif 'ihy' in filename:
+				data_dict[filename]['isLove'] = False
+			else:
+				raise EnvironmentError('File found that does not match any given label!')
 
 			data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keypressTimeLog'])
 			data_dict[filename]['avg_word_typing_time'] = np.average(loader['wordTimeArray'])
-			data_dict[filename]['isLove'] = True
 			data_dict[filename]['phrase_typing_time'] = np.sum(loader['wordTimeArray'])
-			data_dict[filename]['spc_keypress'] = loader['keypressTimeLog'][1] #spc - l
-			data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #l - o
-			#data_dict[filename]['lttr_keypress2'] = loader['keyPressTimeLog'][3] #o - v
-			#data_dict[filename]['lttr_keypress3'] = loader['keyPressTimeLog'][4] #v - e
+			data_dict[filename]['spc_keypress'] = loader['keypressTimeLog'][1] #spc - l / spc - h
+			data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #l - o / h - a
+			data_dict[filename]['lttr_keypress2'] = loader['keypressTimeLog'][3] #o - v / a - t
+			data_dict[filename]['lttr_keypress3'] = loader['keypressTimeLog'][4] #v - e / t - e
 
 
 
-
-	for file in os.listdir('recordings/ihy_combo'):
-		if file.endswith('.wav'):
-			filename = os.path.join('recordings/ihy_combo', file)
-			eng.AudioTimeFilter(filename, nargout=args_out)
-
-			loader = scipy.io.loadmat('/home/reidr/senior_design/natural-language/dsp_tool/to_language_model.mat')
-
-			data_dict[filename] = {}
-
-			data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keypressTimeLog'])
-			data_dict[filename]['avg_word_typing_time'] = np.average(loader['wordTimeArray'])
-			data_dict[filename]['isLove'] = False
-			data_dict[filename]['phrase_typing_time'] = np.sum(loader['wordTimeArray'])
-			data_dict[filename]['spc_keypress'] = loader['keypressTimeLog'][1] #spc - h
-			data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #h - a
-			#data_dict[filename]['lttr_keypress2'] = loader['keyPressTimeLog'][3] #a - t
-			#data_dict[filename]['lttr_keypress3'] = loader['keyPressTimeLog'][4] #t - e
-
-
-	features_list = ['isLove', 'avg_time_between_keypress', 'avg_word_typing_time', 'phrase_typing_time', 'spc_keypress', 'lttr_keypress1']
+	features_list = ['isLove', 'avg_time_between_keypress', 'avg_word_typing_time', 'phrase_typing_time', 'spc_keypress', 'lttr_keypress1', 'lttr_keypress2', 'lttr_keypress3']
 
 	my_dataset = data_dict
 
@@ -228,6 +221,9 @@ if __name__ == '__main__':
 		else:
 			print('Invalid classifier found. Exiting.')
 			sys.exit()
+
+
+
 
 '''
 hate: 0

@@ -304,9 +304,13 @@ end
 %% Saving the Output
 
 if nargin == 1
-    
-    outputFile = matfile('to_language_model.mat', 'Writable', true);
-    save('to_language_model.mat');
+    currentFolder = pwd;
+    subDirectory = '.data_to_lm';
+    if (exist(subDirectory, 'dir') ~= 7)
+        mkdir(subDirectory);
+    end 
+    [~,filename, ~] = fileparts(file);
+    save(fullfile(currentFolder, subDirectory, filename));
 else
     fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
     [file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
