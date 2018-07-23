@@ -14,8 +14,10 @@ for each word to be typed is also recorded. Note that the format for time
 logging the words may change.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %}
+
 function dsp_tool = AudioTimeFilter(waveform)
 %% Reading in the audio file
+
 
 clc; % clears the console
 clearvars -except waveform; %Clear all variables from the workspace
@@ -308,9 +310,25 @@ if nargin == 1
     subDirectory = '.data_to_lm';
     if (exist(subDirectory, 'dir') ~= 7)
         mkdir(subDirectory);
-    end 
+    end
+    cd '.data_to_lm';
+    
+    folder = {'ily', 'ihy', 'iky'};
+    
+    for dirs = folder
+        if (exist(dirs{1}, 'dir') ~= 7)
+            mkdir(dirs{1});
+        end
+    end
+    
+    cd('..')
+    
     [~,filename, ~] = fileparts(file);
-    save(fullfile(currentFolder, subDirectory, filename));
+    for dirs = folder
+       if (contains(file, dirs{1}))
+           save(fullfile(currentFolder, subDirectory, dirs{1}, filename));
+       end
+    end
 else
     fprintf('\nPlease enter a location and file name with a .txt extention to save this information to:\n');
     [file, path] = uiputfile({'*.txt'}, 'Save Output .txt File');
