@@ -10,7 +10,7 @@ from matlab_client import MatlabClient
 import matplotlib.pyplot as plt
 
 from feature_format import featureFormat, targetFeatureSplit
-from tester import test_classifier
+from tester import test_tri_classifier
 
 from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing import MinMaxScaler
@@ -30,7 +30,7 @@ Plots two features against each other in a scatter plot and displays the result
 	-y_data: data plotted on y-axis
 '''
 def draw_scatter_plot(x_data, y_data):
-	features = ['isLove', x_data, y_data]
+	features = ['id', x_data, y_data]
 
 	#convert data into formatted features
 	data = featureFormat(data_dict, features)
@@ -39,10 +39,12 @@ def draw_scatter_plot(x_data, y_data):
 	for point in data:
 		x = point[1]
 		y = point[2]
-		if point[0]:
+		if point[0] == 1:
 			plt.scatter(x, y, color='r') #color 'ily' phrases red
-		else:
+		elif point[0] == 0:
 			plt.scatter(x, y, color='#000000') #color 'ihy' phrases black
+		elif point[0] == 2:
+			plt.scatter(x, y, color='g')
 
 	#set up and display the plot
 	plt.xlabel(x_data)
@@ -109,7 +111,7 @@ if __name__ == '__main__':
 
 	if len(sys.argv) > 1:
 		if sys.argv[1] == '-matlab':
-			client = MatlabClient(['recordings/ily_combo', 'recordings/ihy_combo'],
+			client = MatlabClient(['recordings/ily_combo', 'recordings/ihy_combo', 'recordings/iky'],
 				['keypressTimeLog', 'wordTimeArray'])
 
 	data_dict = {}
@@ -130,6 +132,57 @@ if __name__ == '__main__':
 					- .wav files for classification
 				- ihy_combo
 					- .wav files for classification
+				- iky
+					- .wav files for classification
+			- .data_to_lm
+				- ily
+					- .mat files
+				- ihy
+					- .mat files
+				- iky
+					- .mat files
+	'''
+
+	'''
+	directories of interest (ex: 'ily' and 'ihy')
+
+	for d in directories:
+		if file ends with .mat:
+			filename = os.path.join('.data_to_lm', d, file)
+
+			loader = scipy.io.loadmat(filename)
+			data_dict[filename][id] = phrases[d]
+
+			
+
+	'''
+
+	directories = ['ihy', 'ily', 'iky']
+
+	for directory in os.listdir('.data_to_lm'):
+		#print('directory: {d}'.format(d=directory))
+		sub_directory = os.path.join('.data_to_lm', directory)
+		#print('sub_directory: {s}'.format(s=sub_directory))
+		if directory in directories:
+			for file in os.listdir(sub_directory):
+				if file.endswith('.mat'):
+					filename = os.path.join(sub_directory, file)
+
+					loader = scipy.io.loadmat(filename)
+					data_dict[filename] = {}
+
+					if directory in filename:
+						data_dict[filename]['id'] = directories.index(directory)
+					else:
+						continue
+
+					data_dict[filename]['avg_time_between_keypress'] = np.average(loader['keypressTimeLog'])
+					data_dict[filename]['avg_word_typing_time'] = np.average(loader['wordTimeArray'])
+					data_dict[filename]['phrase_typing_time'] = np.sum(loader['wordTimeArray'])
+					data_dict[filename]['spc_keypress'] = loader['keypressTimeLog'][1] #spc - l / spc - h
+					data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #l - o / h - a
+					data_dict[filename]['lttr_keypress2'] = loader['keypressTimeLog'][3] #o - v / a - t
+					data_dict[filename]['lttr_keypress3'] = loader['keypressTimeLog'][4] #v - e / t - e
 
 
 	'''
@@ -155,10 +208,10 @@ if __name__ == '__main__':
 			data_dict[filename]['lttr_keypress1'] = loader['keypressTimeLog'][2] #l - o / h - a
 			data_dict[filename]['lttr_keypress2'] = loader['keypressTimeLog'][3] #o - v / a - t
 			data_dict[filename]['lttr_keypress3'] = loader['keypressTimeLog'][4] #v - e / t - e
+	'''
 
 
-
-	features_list = ['isLove', 'avg_time_between_keypress', 'avg_word_typing_time', 'phrase_typing_time', 'spc_keypress', 'lttr_keypress1', 'lttr_keypress2', 'lttr_keypress3']
+	features_list = ['id', 'avg_time_between_keypress', 'avg_word_typing_time', 'phrase_typing_time', 'spc_keypress', 'lttr_keypress1', 'lttr_keypress2', 'lttr_keypress3']
 
 	my_dataset = data_dict
 
@@ -184,7 +237,7 @@ if __name__ == '__main__':
 			#create the classifier, find the classifiers best parameters, and test the best version of that classifier
 			clf = DecisionTreeClassifier()
 			clf = search_classifier_parameters(clf_type, clf, parameters)
-			test_classifier(clf.best_estimator_, my_dataset, features_list)
+			test_tri_classifier(clf.best_estimator_, my_dataset, features_list)
 
 
 		elif clf_type == 'logistic_reg':
@@ -195,7 +248,7 @@ if __name__ == '__main__':
 
 			clf = LogisticRegression()
 			clf = search_classifier_parameters(clf_type, clf, parameters)
-			test_classifier(clf.best_estimator_, my_dataset, features_list)
+			test_tri_classifier(clf.best_estimator_, my_dataset, features_list)
 
 		elif clf_type == 'svm':
 			parameters = dict(svm__kernel=['rbf', 'linear'],
@@ -204,7 +257,7 @@ if __name__ == '__main__':
 
 			clf = SVC()
 			clf = search_classifier_parameters(clf_type, clf, parameters)
-			test_classifier(clf.best_estimator_, my_dataset, features_list)
+			test_tri_classifier(clf.best_estimator_, my_dataset, features_list)
 
 
 		elif clf_type == 'random_forest':
@@ -215,7 +268,7 @@ if __name__ == '__main__':
 
 			clf = RandomForestClassifier()
 			clf = search_classifier_parameters(clf_type, clf, parameters)
-			test_classifier(clf.best_estimator_, my_dataset, features_list)
+			test_tri_classifier(clf.best_estimator_, my_dataset, features_list)
 
 
 		else:
